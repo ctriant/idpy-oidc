@@ -1,11 +1,8 @@
 import base64
-import json
 import os
 
 import pytest
-from cryptojwt import JWT
 from cryptojwt import as_unicode
-from cryptojwt.key_jar import build_keyjar
 from cryptojwt.utils import as_bytes
 
 from idpyoidc.message.oauth2 import TokenRevocationRequest
@@ -94,6 +91,7 @@ def full_path(local_file):
 
 @pytest.mark.parametrize("jwt_token", [True, False])
 class TestEndpoint:
+
     @pytest.fixture(autouse=True)
     def create_endpoint(self, jwt_token):
         conf = {
@@ -201,7 +199,7 @@ class TestEndpoint:
                 "kwargs": {},
             }
         server = Server(ASConfiguration(conf=conf, base_path=BASEDIR), cwd=BASEDIR)
-        endpoint_context = server.endpoint_context
+        endpoint_context = server.context
         endpoint_context.cdb["client_1"] = {
             "client_secret": "hemligt",
             "redirect_uris": [("https://example.com/cb", None)],
@@ -214,14 +212,15 @@ class TestEndpoint:
                 },
                 "by_scope": {},
             },
-            "allowed_scopes": ["openid", "profile", "email", "address", "phone", "offline_access", "research_and_scholarship"]
+            "allowed_scopes": ["openid", "profile", "email", "address", "phone", "offline_access",
+                               "research_and_scholarship"]
         }
         endpoint_context.keyjar.import_jwks_as_json(
             endpoint_context.keyjar.export_jwks_as_json(private=True),
             endpoint_context.issuer,
         )
-        self.revocation_endpoint = server.server_get("endpoint", "token_revocation")
-        self.token_endpoint = server.server_get("endpoint", "token")
+        self.revocation_endpoint = server.get_endpoint("token_revocation")
+        self.token_endpoint = server.get_endpoint("token")
         self.session_manager = endpoint_context.session_manager
         self.user_id = "diana"
 
@@ -241,7 +240,7 @@ class TestEndpoint:
         # Constructing an authorization code is now done
         return grant.mint_token(
             session_id=session_id,
-            endpoint_context=self.token_endpoint.server_get("endpoint_context"),
+            context=self.token_endpoint.upstream_get("context"),
             token_class=token_class,
             token_handler=self.session_manager.token_handler.handler[token_class],
             expires_at=utc_time_sans_frac() + 300,  # 5 minutes from now
@@ -252,16 +251,16 @@ class TestEndpoint:
     def _get_access_token(self, areq):
         session_id = self._create_session(areq)
         # Consent handling
-        grant = self.token_endpoint.server_get("endpoint_context").authz(session_id, areq)
+        grant = self.token_endpoint.upstream_get("endpoint_context").authz(session_id, areq)
         self.session_manager[session_id] = grant
         # grant = self.session_manager[session_id]
         code = self._mint_token("authorization_code", grant, session_id)
         return self._mint_token("access_token", grant, session_id, code)
-    
+
     def _get_refresh_token(self, areq):
         session_id = self._create_session(areq)
         # Consent handling
-        grant = self.token_endpoint.server_get("endpoint_context").authz(session_id, areq)
+        grant = self.token_endpoint.upstream_get("endpoint_context").authz(session_id, areq)
         self.session_manager[session_id] = grant
         # grant = self.session_manager[session_id]
         code = self._mint_token("authorization_code", grant, session_id)
@@ -275,7 +274,7 @@ class TestEndpoint:
     def test_parse_with_client_auth_in_req(self):
         access_token = self._get_access_token(AUTH_REQ)
 
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _req = self.revocation_endpoint.parse_request(
             {
                 "token": access_token.value,
@@ -292,7 +291,7 @@ class TestEndpoint:
 
         _basic_token = "{}:{}".format(
             "client_1",
-            self.revocation_endpoint.server_get("endpoint_context").cdb["client_1"][
+            self.revocation_endpoint.upstream_get("endpoint_context").cdb["client_1"][
                 "client_secret"
             ],
         )
@@ -312,7 +311,7 @@ class TestEndpoint:
             {
                 "token": access_token.value,
                 "client_id": "client_1",
-                "client_secret": self.revocation_endpoint.server_get("endpoint_context").cdb[
+                "client_secret": self.revocation_endpoint.upstream_get("endpoint_context").cdb[
                     "client_1"
                 ]["client_secret"],
             }
@@ -328,7 +327,7 @@ class TestEndpoint:
             {
                 "token": access_token.value,
                 "client_id": "client_1",
-                "client_secret": self.revocation_endpoint.server_get("endpoint_context").cdb[
+                "client_secret": self.revocation_endpoint.upstream_get("endpoint_context").cdb[
                     "client_1"
                 ]["client_secret"],
             }
@@ -345,7 +344,7 @@ class TestEndpoint:
 
     def test_do_response_no_token(self):
         # access_token = self._get_access_token(AUTH_REQ)
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _req = self.revocation_endpoint.parse_request(
             {
                 "client_id": "client_1",
@@ -358,7 +357,7 @@ class TestEndpoint:
     def test_access_token(self):
         access_token = self._get_access_token(AUTH_REQ)
         assert access_token.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _req = self.revocation_endpoint.parse_request(
             {
                 "token": access_token.value,
@@ -380,7 +379,7 @@ class TestEndpoint:
 
         access_token = self._get_access_token(AUTH_REQ)
         assert access_token.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _context.cdb["client_1"]["token_revocation"] = {
             "token_types_supported": [
                 "access_token",
@@ -417,7 +416,7 @@ class TestEndpoint:
 
         access_token = self._get_access_token(AUTH_REQ)
         assert access_token.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _context.cdb["client_1"]["token_revocation"] = {
             "token_types_supported": [
                 "access_token",
@@ -446,12 +445,12 @@ class TestEndpoint:
         session_id = self._create_session(AUTH_REQ)
 
         # Apply consent
-        grant = self.token_endpoint.server_get("endpoint_context").authz(session_id, AUTH_REQ)
+        grant = self.token_endpoint.upstream_get("endpoint_context").authz(session_id, AUTH_REQ)
         self.session_manager[session_id] = grant
 
         code = self._mint_token("authorization_code", grant, session_id)
         assert code.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
 
         _req = self.revocation_endpoint.parse_request(
             {
@@ -467,7 +466,7 @@ class TestEndpoint:
     def test_refresh_token(self):
         refresh_token = self._get_refresh_token(AUTH_REQ)
         assert refresh_token.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _req = self.revocation_endpoint.parse_request(
             {
                 "token": refresh_token.value,
@@ -483,7 +482,7 @@ class TestEndpoint:
         access_token = self._get_access_token(AUTH_REQ)
         access_token.expires_at = utc_time_sans_frac() - 1000
 
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
 
         _req = self.revocation_endpoint.parse_request(
             {
@@ -499,7 +498,7 @@ class TestEndpoint:
         access_token = self._get_access_token(AUTH_REQ)
         access_token.revoked = True
 
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
 
         _req = self.revocation_endpoint.parse_request(
             {
@@ -516,12 +515,12 @@ class TestEndpoint:
         session_id = self._create_session(AUTH_REQ)
 
         # Apply consent
-        grant = self.token_endpoint.server_get("endpoint_context").authz(session_id, AUTH_REQ)
+        grant = self.token_endpoint.upstream_get("endpoint_context").authz(session_id, AUTH_REQ)
         self.session_manager[session_id] = grant
 
         code = self._mint_token("authorization_code", grant, session_id)
         assert code.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
 
         _req = self.revocation_endpoint.parse_request(
             {
@@ -544,7 +543,7 @@ class TestEndpoint:
         assert code.revoked is False
 
     def test_unsupported_token_type_per_client(self):
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
         _context.cdb["client_1"]["token_revocation"] = {
             "token_types_supported": [
                 "refresh_token",
@@ -553,12 +552,12 @@ class TestEndpoint:
         session_id = self._create_session(AUTH_REQ)
 
         # Apply consent
-        grant = self.token_endpoint.server_get("endpoint_context").authz(session_id, AUTH_REQ)
+        grant = self.token_endpoint.upstream_get("endpoint_context").authz(session_id, AUTH_REQ)
         self.session_manager[session_id] = grant
 
         code = self._mint_token("authorization_code", grant, session_id)
         assert code.revoked is False
-        _context = self.revocation_endpoint.server_get("endpoint_context")
+        _context = self.revocation_endpoint.upstream_get("endpoint_context")
 
         _req = self.revocation_endpoint.parse_request(
             {

@@ -1,13 +1,12 @@
 """Implements RFC7009"""
+
 import logging
-from typing import Optional
 
 from idpyoidc.exception import ImproperlyConfigured
 from idpyoidc.message import oauth2
 from idpyoidc.server.endpoint import Endpoint
 from idpyoidc.server.token.exception import UnknownToken
 from idpyoidc.server.token.exception import WrongTokenClass
-
 from idpyoidc.util import importer
 
 logger = logging.getLogger(__name__)
@@ -35,10 +34,10 @@ class TokenRevocation(Endpoint):
 
     token_types_supported = ["authorization_code", "access_token", "refresh_token"]
 
-    def __init__(self, server_get, **kwargs):
-        Endpoint.__init__(self, server_get, **kwargs)
+    def __init__(self, upstream_get, **kwargs):
+        Endpoint.__init__(self, upstream_get, **kwargs)
         self.token_revocation_kwargs = kwargs
-    
+
     def get_client_id_from_token(self, endpoint_context, token, request=None):
         _info = endpoint_context.session_manager.get_session_info_by_token(
             token, handler_key="access_token"
@@ -57,7 +56,7 @@ class TokenRevocation(Endpoint):
 
         request_token = _revoke_request["token"]
         _resp = self.response_cls()
-        _context = self.server_get("endpoint_context")
+        _context = self.upstream_get("endpoint_context")
         logger.debug("Token Revocation")
 
         try:
@@ -77,14 +76,17 @@ class TokenRevocation(Endpoint):
         _token = grant.get_token(request_token)
 
         try:
-            self.token_types_supported = _context.cdb[client_id]["token_revocation"]["token_types_supported"]
-        except:
-            self.token_types_supported = self.token_revocation_kwargs.get("token_types_supported", self.token_types_supported)
+            self.token_types_supported = _context.cdb[client_id]["token_revocation"][
+                "token_types_supported"]
+        except Exception:
+            self.token_types_supported = self.token_revocation_kwargs.get("token_types_supported",
+                                                                          self.token_types_supported)
 
         try:
             self.policy = _context.cdb[client_id]["token_revocation"]["policy"]
-        except:
-            self.policy = self.token_revocation_kwargs.get("policy", {"": {"callable": validate_token_revocation_policy}})
+        except Exception:
+            self.policy = self.token_revocation_kwargs.get("policy", {
+                "": {"callable": validate_token_revocation_policy}})
 
         if _token.token_class not in self.token_types_supported:
             desc = (
@@ -97,7 +99,7 @@ class TokenRevocation(Endpoint):
         return self._revoke(_revoke_request, _session_info)
 
     def _revoke(self, request, session_info):
-        _context = self.server_get("endpoint_context")
+        _context = self.upstream_get("endpoint_context")
         _mngr = _context.session_manager
         _token = _mngr.find_token(session_info["branch_id"], request["token"])
 
@@ -130,4 +132,3 @@ def validate_token_revocation_policy(token, session_info, **kwargs):
 
     response_args = {"response_args": {}}
     return oauth2.TokenRevocationResponse(**response_args)
-
