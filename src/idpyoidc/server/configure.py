@@ -174,8 +174,10 @@ class EntityConfiguration(Base):
         dir_attributes: Optional[List[str]] = None,
         upstream_get: Optional[Callable] = None
     ):
-
+        tmp = conf["userinfo"]["kwargs"]["db"]
+        conf["userinfo"]["kwargs"]["db"] = {}
         conf = copy.deepcopy(conf)
+        conf["userinfo"]["kwargs"]["db"] = tmp
         Base.__init__(
             self,
             conf,
@@ -187,7 +189,6 @@ class EntityConfiguration(Base):
         )
 
         self.key_conf = conf.get("key_conf", conf.get("keys"))
-
         for key in self.parameter.keys():
             _val = conf.get(key)
             if not _val:

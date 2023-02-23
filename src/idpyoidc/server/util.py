@@ -129,7 +129,7 @@ def allow_refresh_token(context):
 
     # Is refresh_token grant type supported
     _token_supported = False
-    _supported = context.get_preference("grant_types_supported")
+    _supported = context.provider_info["grant_types_supported"]
     if _supported:
         if "refresh_token" in _supported:
             # self.allow_refresh = kwargs.get("allow_refresh", True)
