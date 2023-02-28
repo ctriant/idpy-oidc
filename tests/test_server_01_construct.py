@@ -4,7 +4,7 @@ from idpyoidc.server.construct import construct_provider_info
 
 
 def test_construct():
-    default_capabilities = {
+    default_preference = {
         "claims_parameter_supported": True,
         "request_parameter_supported": True,
         "request_uri_parameter_supported": True,
@@ -17,7 +17,7 @@ def test_construct():
         "scopes_supported": [],
     }
     _info = construct_provider_info(
-        default_capabilities,
+        default_preference,
         request_object_signing_alg_values_supported=["RS256", "RS384", "RS512"],
         grant_types_supported=["authorization_code"],
     )
@@ -27,6 +27,6 @@ def test_construct():
 
     with pytest.raises(ValueError):
         _info = construct_provider_info(
-            default_capabilities,
+            default_preference,
             request_object_encryption_alg_values_supported=["X"],
         )

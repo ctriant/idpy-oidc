@@ -56,7 +56,7 @@
       "httpc_params": {
         "verify": false
       },
-      "capabilities": {
+      "preference": {
         "subject_types_supported": [
           "public",
           "pairwise"

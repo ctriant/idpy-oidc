@@ -176,7 +176,10 @@ class Registration(Endpoint):
             if _val:
                 _args[key] = _val
             else:
-                logger.error(f"Capabilities mismatch: {key}={val} not supported")
+                logger.error(f"preference mismatch: {key}={val} not supported")
+                return ResponseMessage(
+                    error="invalid_request", error_description=str("preference mismatch: response_type={val} not supported")
+                )
         return _args
 
     def do_client_registration(self, request, client_id, ignore=None):
@@ -406,7 +409,6 @@ class Registration(Endpoint):
 
         request.rm_blanks()
         _context = self.upstream_get("context")
-
         request = self.filter_client_request(request)
 
         if new_id:

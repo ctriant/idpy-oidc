@@ -22,7 +22,7 @@ class TokenRevocation(Endpoint):
     response_format = "json"
     endpoint_name = "revocation_endpoint"
     name = "token_revocation"
-    default_capabilities = {
+    default_preference = {
         "client_authn_method": [
             "client_secret_basic",
             "client_secret_post",

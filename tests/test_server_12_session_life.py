@@ -211,7 +211,7 @@ RESPONSE_TYPES_SUPPORTED = [
     ["code", "token", "id_token"],
     ["none"],
 ]
-CAPABILITIES = {
+preference = {
     "response_types_supported": [" ".join(x) for x in RESPONSE_TYPES_SUPPORTED],
     "token_endpoint_auth_methods_supported": [
         "client_secret_post",
@@ -243,7 +243,7 @@ class TestSessionJWTToken:
             "token_expires_in": 600,
             "grant_expires_in": 300,
             "refresh_token_expires_in": 86400,
-            "capabilities": CAPABILITIES,
+            "preference": preference,
             "keys": {"uri_path": "jwks.json", "key_defs": KEYDEFS},
             "token_handler_args": {
                 "jwks_file": "private/token_jwks.json",

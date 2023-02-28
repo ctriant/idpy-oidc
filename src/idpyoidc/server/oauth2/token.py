@@ -29,7 +29,7 @@ class Token(Endpoint):
     response_placement = "body"
     endpoint_name = "token_endpoint"
     name = "token"
-    default_capabilities = {"token_endpoint_auth_signing_alg_values_supported": None}
+    default_preference = {"token_endpoint_auth_signing_alg_values_supported": None}
     helper_by_grant_type = {
         "authorization_code": AccessTokenHelper,
         "refresh_token": RefreshTokenHelper,

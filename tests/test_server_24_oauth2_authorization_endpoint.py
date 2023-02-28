@@ -51,7 +51,7 @@ COOKIE_KEYDEFS = [
 
 RESPONSE_TYPES_SUPPORTED = [["code"], ["token"], ["code", "token"], ["none"]]
 
-CAPABILITIES = {
+preference = {
     "grant_types_supported": [
         "authorization_code",
         "implicit",
@@ -162,7 +162,7 @@ class TestEndpoint(object):
             "issuer": "https://example.com/",
             "password": "mycket hemligt zebra",
             "verify_ssl": False,
-            "capabilities": CAPABILITIES,
+            "preference": preference,
             "keys": {"uri_path": "static/jwks.json", "key_defs": KEYDEFS},
             "token_handler_args": {
                 "jwks_def": {
@@ -579,7 +579,7 @@ class TestEndpoint(object):
         kaka = _context.cookie_handler.make_cookie_content("value", "sso")
 
         # force to 400 Http Error message if the release scope policy is heavy!
-        _context.conf["capabilities"]["deny_unknown_scopes"] = True
+        _context.conf["preference"]["deny_unknown_scopes"] = True
         excp = None
         try:
             res = self.endpoint.process_request(request, http_info={"headers": {"cookie": [kaka]}})

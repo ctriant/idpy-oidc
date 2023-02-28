@@ -118,7 +118,7 @@ class InvalidRequest(OidcEndpointError):
     pass
 
 
-class CapabilitiesMisMatch(OidcEndpointError):
+class preferenceMisMatch(OidcEndpointError):
     pass
 
 

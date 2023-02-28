@@ -268,7 +268,7 @@ def authn_args_gather(
 
 
 def check_unknown_scopes_policy(request_info, client_id, context):
-    if not context.conf["capabilities"].get("deny_unknown_scopes"):
+    if not context.conf["preference"].get("deny_unknown_scopes"):
         return
 
     scope = request_info["scope"]
@@ -350,7 +350,7 @@ class Authorization(Endpoint):
         "grant_types_supported": ["authorization_code", "implicit"],
         "scopes_supported": [],
     }
-    default_capabilities = {
+    default_preference = {
         "client_authn_method": ["request_param", "public"],
     }
 

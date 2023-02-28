@@ -200,7 +200,7 @@ An example::
       },
 
 ------------
-capabilities
+preference
 ------------
 
 This covers most of the basic functionality of the OP. The key words are the

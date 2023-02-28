@@ -14,7 +14,7 @@ from idpyoidc.server.scopes import SCOPE2CLAIMS
 logger = logging.getLogger(__name__)
 
 OP_DEFAULT_CONFIG = {
-    "capabilities": {
+    "preference": {
         "subject_types_supported": ["public", "pairwise"],
         "grant_types_supported": [
             "authorization_code",
@@ -148,7 +148,7 @@ class EntityConfiguration(Base):
         "authz": None,
         "authentication": None,
         "base_url": "",
-        "capabilities": None,
+        "preference": None,
         "claims_interface": None,
         "client_db": None,
         "client_authn_methods": {},
@@ -162,7 +162,6 @@ class EntityConfiguration(Base):
         "token_handler_args": {},
         "userinfo": None,
     }
-
     def __init__(
         self,
         conf: Dict,
@@ -345,7 +344,7 @@ DEFAULT_EXTENDED_CONF = {
             },
         }
     },
-    "capabilities": {
+    "preference": {
         "subject_types_supported": ["public", "pairwise"],
         "grant_types_supported": [
             "authorization_code",

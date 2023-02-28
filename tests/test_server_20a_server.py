@@ -39,7 +39,7 @@ KEYJAR = build_keyjar(KEYDEFS)
 CONF = {
     "issuer": "https://example.com/",
     "httpc_params": {"verify": False, "timeout": 1},
-    "capabilities": {},
+    "preference": {},
     "keys": {"uri_path": "static/jwks.json", "key_defs": KEYDEFS, "read_only": True},
     "endpoint": {
         "provider_config": {
@@ -110,7 +110,7 @@ oidc_clients:
 """
 
 
-def test_capabilities_default():
+def test_preference_default():
     _str = open(full_path("op_config.json")).read()
     _conf = json.loads(_str)
 
@@ -131,14 +131,14 @@ def test_capabilities_default():
            "https://127.0.0.1:443/static/jwks.json"
 
 
-def test_capabilities_subset1():
+def test_preference_subset1():
     _cnf = deepcopy(CONF)
     _cnf["response_types_supported"] = ["code"]
     server = Server(_cnf)
     assert server.context.provider_info["response_types_supported"] == ["code"]
 
 
-def test_capabilities_subset2():
+def test_preference_subset2():
     _cnf = deepcopy(CONF)
     _cnf["response_types_supported"] = ["code", "id_token"]
     server = Server(_cnf)
@@ -148,7 +148,7 @@ def test_capabilities_subset2():
     }
 
 
-def test_capabilities_bool():
+def test_preference_bool():
     _cnf = deepcopy(CONF)
     _cnf["request_uri_parameter_supported"] = False
     server = Server(_cnf)

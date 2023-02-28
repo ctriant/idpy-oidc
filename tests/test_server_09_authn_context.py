@@ -46,7 +46,7 @@ RESPONSE_TYPES_SUPPORTED = [
     ["none"],
 ]
 
-CAPABILITIES = {
+preference = {
     "response_types_supported": [" ".join(x) for x in RESPONSE_TYPES_SUPPORTED],
     "token_endpoint_auth_methods_supported": [
         "client_secret_post",
@@ -128,7 +128,7 @@ class TestAuthnBrokerEC:
                 "refresh": {"lifetime": 600, "kwargs": {"crypt_conf": CRYPT_CONFIG}},
             },
             "verify_ssl": False,
-            "capabilities": CAPABILITIES,
+            "preference": preference,
             "keys": {"uri_path": "static/jwks.json", "key_defs": KEYDEFS},
             "authentication": METHOD,
             "userinfo": {"class": UserInfo, "kwargs": {"db": USERINFO_db}},

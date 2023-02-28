@@ -24,7 +24,7 @@ class Token(token.Token):
     response_placement = "body"
     endpoint_name = "token_endpoint"
     name = "token"
-    default_capabilities = None
+    default_preference = None
 
     _supports = {
         "token_endpoint_auth_methods_supported": [

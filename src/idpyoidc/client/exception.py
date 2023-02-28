@@ -24,7 +24,7 @@ class TimeFormatError(OidcServiceError):
     pass
 
 
-class CapabilitiesMisMatch(OidcServiceError):
+class preferenceMisMatch(OidcServiceError):
     pass
 
 

@@ -834,7 +834,7 @@ def test_response_types_to_grant_types():
     assert set(response_types_to_grant_types(req_args)) == {"authorization_code"}
     req_args = ["code", "code id_token"]
     assert set(response_types_to_grant_types(req_args)) == {"authorization_code", "implicit"}
-    req_args = ["code", "id_token code", "code token id_token"]
+    req_args = ["code", "id_token code", "code id_token token"]
     assert set(response_types_to_grant_types(req_args)) == {"authorization_code", "implicit"}
 
 

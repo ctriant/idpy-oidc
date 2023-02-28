@@ -28,7 +28,7 @@ RESPONSE_TYPES_SUPPORTED = [
     ["none"],
 ]
 
-CAPABILITIES = {
+preference = {
     "response_types_supported": [" ".join(x) for x in RESPONSE_TYPES_SUPPORTED],
     "token_endpoint_auth_methods_supported": [
         "client_secret_post",
@@ -57,7 +57,7 @@ class TestProviderConfigEndpoint(object):
         return {
             "issuer": "https://example.com/",
             "httpc_params": {"verify": False},
-            "capabilities": CAPABILITIES,
+            "preference": preference,
             "keys": {"uri_path": "static/jwks.json", "key_defs": KEYDEFS},
             "endpoint": {
                 "provider_config": {
